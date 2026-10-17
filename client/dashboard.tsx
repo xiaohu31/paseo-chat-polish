@@ -10,6 +10,8 @@ import { applyUpdate, checkUpdate, type UpdateStatus } from "../shared/update";
 import { hideableKind, todoData, toolData } from "./model";
 import { setTodoChanges } from "./steps";
 import { PrefsOverride, setPrefs, usePrefs } from "./prefs";
+import { LANGUAGES } from "./i18n";
+import { useI18n } from "./use-i18n";
 import { registerTheme, useCurrentTheme } from "./theme-registry";
 import { PLAIN_SYNTAX, SYNTAX_THEMES } from "./highlight";
 import { alpha, AppearanceOverride, CodeLine, ImagesItem, MergedSteps, PMONO, sunken, SyntaxOverride, ThoughtItem, TodoItem, ToolItem, useReducedMotion, useStyles } from "./views";
@@ -315,16 +317,17 @@ function Legend({ theme }: { theme: PluginTheme }) {
 
 /** The switch for restyling Paseo's own items; it gates Rich text and the loaders, so it sits outside any one page. */
 function RestyleCard({ theme, prefs, onChange }: { theme: PluginTheme; prefs: Prefs; onChange(p: Prefs): void }) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   return (
     <View style={{ gap: 6, padding: 10, borderRadius: 10, backgroundColor: c.surface1, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         <Icon name="Paintbrush" size={14} color={c.foregroundMuted} />
-        <Text style={[s.verb, { flex: 1, fontSize: 13 }]}>Restyle Paseo's items</Text>
-        <Switch theme={theme} label="Restyle Paseo's items" value={prefs.nativeStyle === "design"} onChange={(on) => onChange({ ...prefs, nativeStyle: on ? "design" : "paseo" })} />
+        <Text style={[s.verb, { flex: 1, fontSize: 13 }]}>{t("Restyle Paseo's items")}</Text>
+        <Switch theme={theme} label={t("Restyle Paseo's items")} value={prefs.nativeStyle === "design"} onChange={(on) => onChange({ ...prefs, nativeStyle: on ? "design" : "paseo" })} />
       </View>
-      <Text style={[s.small, { fontSize: 12 }]}>Bubbles, tool groups and markdown. Rich text and loaders need it.</Text>
+      <Text style={[s.small, { fontSize: 12 }]}>{t("Bubbles, tool groups and markdown. Rich text and loaders need it.")}</Text>
     </View>
   );
 }
@@ -361,11 +364,12 @@ function UpdateCard({ theme }: { theme: PluginTheme }) {
 
 /** Accent while an update waits, red once it failed, green while the plugin restarts on the new code. */
 function UpdateCardView({ theme, status, phase, error, onUpdate }: { theme: PluginTheme; status: UpdateStatus; phase: "idle" | "updating" | "restarting"; error?: string; onUpdate(): void }) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const reducedMotion = useReducedMotion();
   const tone = phase === "restarting" ? c.statusSuccess : error ? c.statusDanger : c.accent;
-  const title = phase === "restarting" ? "Updated" : phase === "updating" ? "Updating…" : error ? "Update failed" : "Update available";
+  const title = phase === "restarting" ? t("Updated") : phase === "updating" ? t("Updating") : error ? t("Update failed") : t("Update available");
   const mono = [s.small, { fontSize: 11, lineHeight: 15 }];
   const review = status.links[0];
   const press = ({ pressed }: { pressed: boolean }) => ({ opacity: reducedMotion && pressed ? 0.8 : 1, transform: pressed && !reducedMotion ? [{ scale: 0.97 }] : undefined });
@@ -385,7 +389,7 @@ function UpdateCardView({ theme, status, phase, error, onUpdate }: { theme: Plug
             </Text>
           ) : (
             <Text style={[s.small, { fontSize: 12 }]} numberOfLines={1}>
-              {phase === "updating" ? `Installing ${status.target}` : "Restarting Chat Polish…"}
+              {phase === "updating" ? `${t("Updating")} ${status.target}` : `${t("Updating")} Chat Polish…`}
             </Text>
           )}
         </View>
@@ -398,11 +402,11 @@ function UpdateCardView({ theme, status, phase, error, onUpdate }: { theme: Plug
       {phase === "idle" ? (
         <View style={{ flexDirection: "row", gap: 6 }}>
           <Pressable accessibilityRole="button" onPress={onUpdate} style={(st) => [{ flex: 1, height: 28, borderRadius: 6, backgroundColor: c.accent, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }, press(st)]}>
-            <Text style={[s.verb, { fontSize: 12, fontWeight: "600", color: c.accentForeground }]}>{error ? "Try again" : "Update now"}</Text>
+            <Text style={[s.verb, { fontSize: 12, fontWeight: "600", color: c.accentForeground }]}>{error ? t("Try again") : t("Update now")}</Text>
           </Pressable>
           {review ? (
             <Pressable accessibilityRole="link" accessibilityLabel="Review changes" onPress={() => void Linking.openURL(review)} style={(st) => [{ height: 28, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: alpha(tone, 0.24), flexDirection: "row", alignItems: "center", gap: 4 }, press(st)]}>
-              <Text style={[s.verb, { fontSize: 12, color: c.foreground }]}>Changes</Text>
+              <Text style={[s.verb, { fontSize: 12, color: c.foreground }]}>{t("Changes")}</Text>
               <Icon name="ArrowUpRight" size={12} color={c.foregroundMuted} />
             </Pressable>
           ) : null}
@@ -413,6 +417,7 @@ function UpdateCardView({ theme, status, phase, error, onUpdate }: { theme: Plug
 }
 
 function InnerNav({ theme, host, page, prefs, onSelect, onPrefs }: { theme: PluginTheme; host: string; page: Page; prefs: Prefs; onSelect(p: Page): void; onPrefs(p: Prefs): void }) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const item = ({ id, icon, label }: (typeof PAGES)[number]) => {
@@ -434,7 +439,7 @@ function InnerNav({ theme, host, page, prefs, onSelect, onPrefs }: { theme: Plug
         })}
       >
         <Icon name={icon} size={16} color={active ? c.foreground : c.foregroundMuted} />
-        <Text style={[s.target, { color: active ? c.foreground : c.foregroundMuted, flex: 1 }]}>{label}</Text>
+        <Text style={[s.target, { color: active ? c.foreground : c.foregroundMuted, flex: 1 }]}>{t(label)}</Text>
       </Pressable>
     );
   };
@@ -451,17 +456,26 @@ function InnerNav({ theme, host, page, prefs, onSelect, onPrefs }: { theme: Plug
       </View>
       {["APPEARANCE", "CHAT"].map((group) => (
         <View key={group} style={{ gap: 2 }}>
-          <Text style={[s.label, { paddingHorizontal: 8, marginBottom: 2 }]}>{group}</Text>
+          <Text style={[s.label, { paddingHorizontal: 8, marginBottom: 2 }]}>{t(group)}</Text>
           {PAGES.filter((p) => p.group === group).map(item)}
         </View>
       ))}
       <View style={{ flex: 1 }} />
       <UpdateCard theme={theme} />
       {canSetAppTheme ? <RestyleCard theme={theme} prefs={prefs} onChange={onPrefs} /> : null}
+      <View style={{ paddingHorizontal: 8, gap: 6 }}>
+        <Text style={[s.small, { fontSize: 11 }]}>{t("Use language")}</Text>
+        <Segmented
+          theme={theme}
+          value={prefs.language}
+          onChange={(language) => onPrefs({ ...prefs, language })}
+          options={LANGUAGES.map(({ value, label }) => [value, "", label] as [typeof value, string, string])}
+        />
+      </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 8 }}>
         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.statusSuccess }} />
         <Text style={[s.small, { fontSize: 11 }]} numberOfLines={1}>
-          Plugin active · {host}
+          {t("Plugin active")} · {host}
         </Text>
       </View>
     </View>
@@ -1104,6 +1118,7 @@ const RICH_DRAWINGS: Record<RichText, Array<(c: Colors) => ReactNode>> = {
 
 /** Settings for one page: grouped cards (Messages, Steps) or a tile picker per markdown element (Rich text). */
 function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; page: Exclude<Page, "theme">; prefs: Prefs; onChange(p: Prefs): void }) {
+  const t = useI18n();
   const set = <K extends keyof Prefs>(key: K) => (value: Prefs[K]) => onChange({ ...prefs, [key]: value });
   const s = useStyles(theme);
   const c = theme.colors;
@@ -1111,8 +1126,8 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
     const paseoSyntax = readSyntaxTheme();
     return (
       <View style={{ gap: 24 }}>
-        <Group theme={theme} title="Spacing">
-          <Row theme={theme} first label="Density" hint="Space between replies, prompts and step rows.">
+        <Group theme={theme} title={t("Spacing")}>
+          <Row theme={theme} first label={t("Density")} hint={t("Space between replies, prompts and step rows.")}>
             <Segmented
               theme={theme}
               value={prefs.density}
@@ -1125,13 +1140,13 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
             />
           </Row>
         </Group>
-        <Group theme={theme} title="Replies">
-          <Row theme={theme} first label="Copy popup" hint="Selecting text offers Copy text or Markdown.">
+        <Group theme={theme} title={t("Replies")}>
+          <Row theme={theme} first label={t("Copy popup")} hint={t("Selecting text offers Copy text or Markdown.")}>
             <Switch theme={theme} label="Copy popup" value={prefs.selectionCopy === "on"} onChange={(on) => set("selectionCopy")(on ? "on" : "off")} />
           </Row>
         </Group>
-        <Group theme={theme} title="Your messages">
-          <Row theme={theme} first label="Long messages" hint="Over 8 lines; clamp shows six.">
+        <Group theme={theme} title={t("Your messages")}>
+          <Row theme={theme} first label={t("Long messages")} hint={t("Over 8 lines; clamp shows six.")}>
             <Segmented
               theme={theme}
               value={prefs.userMessages}
@@ -1143,8 +1158,8 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
             />
           </Row>
         </Group>
-        <Group theme={theme} title="Images">
-          <Row theme={theme} first label="Image-only replies" hint="Thumbnails open full size.">
+        <Group theme={theme} title={t("Images")}>
+          <Row theme={theme} first label={t("Image-only replies")} hint={t("Thumbnails open full size.")}>
             <Segmented
               theme={theme}
               value={prefs.images}
@@ -1158,8 +1173,8 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
           </Row>
         </Group>
         {canSetAppTheme ? (
-          <Group theme={theme} title="Working indicator">
-            <Row theme={theme} first stacked label="Loader" hint="Shown in the turn footer while the agent works.">
+          <Group theme={theme} title={t("Working indicator")}>
+            <Row theme={theme} first stacked label={t("Loader")} hint={t("Shown in the turn footer while the agent works.")}>
               {prefs.nativeStyle === "paseo" ? (
                 <Notice theme={theme}>Loaders are drawn by the restyle. Turn on Restyle Paseo's items to pick one.</Notice>
               ) : (
@@ -1172,7 +1187,7 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
                 </View>
               )}
             </Row>
-            <Row theme={theme} label="Size" hint="Paseo draws it at 14.">
+            <Row theme={theme} label={t("Size")} hint={t("Paseo draws it at 14.")}>
               <Segmented
                 theme={theme}
                 value={prefs.loaderSize}
@@ -1203,11 +1218,11 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
     const paseo = readHostAppearance().autoExpandReasoning;
     return (
       <View style={{ gap: 24 }}>
-        <Group theme={theme} title="Layout">
-          <Row theme={theme} first label="Merge into one row" hint="One row like “Thought 2 times, ran 3 commands”.">
+        <Group theme={theme} title={t("Layout")}>
+          <Row theme={theme} first label={t("Merge into one row")} hint={t("One row like “Thought 2 times, ran 3 commands”.")}>
             <Switch theme={theme} label="Merge into one row" value={prefs.merge === "on"} onChange={(on) => set("merge")(on ? "on" : "off")} />
           </Row>
-          <Row theme={theme} label="Strength" hint="How faded rows sit until you hover them.">
+          <Row theme={theme} label={t("Strength")} hint={t("How faded rows sit until you hover them.")}>
             <Segmented
               theme={theme}
               value={prefs.steps}
@@ -1220,15 +1235,15 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
               ]}
             />
           </Row>
-          <Row theme={theme} stacked label="Row icons" hint="Without an icon a row starts with its verb.">
+          <Row theme={theme} stacked label={t("Row icons")} hint={t("Without an icon a row starts with its verb.")}>
             {ICON_KINDS.map((k) => {
               const shown = prefs.rowIcons[k] === "show";
               return <Chip key={k} theme={theme} on={shown} label={ICON_LABELS[k]} onPress={() => onChange({ ...prefs, rowIcons: { ...prefs.rowIcons, [k]: shown ? "hide" : "show" } })} />;
             })}
           </Row>
         </Group>
-        <Group theme={theme} title="Reasoning">
-          <Row theme={theme} first stacked label="Starts as" hint={`Paseo: Always expand reasoning (${paseo ? "on" : "off"}).`}>
+        <Group theme={theme} title={t("Reasoning")}>
+          <Row theme={theme} first stacked label={t("Starts as")} hint={`${t("Paseo: Always expand reasoning")} (${paseo ? t("on") : t("off")}).`}>
             <Segmented
               theme={theme}
               value={prefs.reasoning}
@@ -1243,14 +1258,14 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
         </Group>
         <Group
           theme={theme}
-          title="Tool calls"
+          title={t("Tool calls")}
           top={
             readHostAppearance().toolCallDetail === "overview" ? (
               <Notice theme={theme}>Paseo's tool call display is Summary, so calls stay grouped ("Ran 4 commands"). Switch it to Detailed in Settings → Appearance to get these rows.</Notice>
             ) : null
           }
         >
-          <Row theme={theme} first label="Open details" hint="Which rows start open.">
+          <Row theme={theme} first label={t("Open details")} hint={t("Which rows start open.")}>
             <Segmented
               theme={theme}
               value={prefs.toolDetails}
@@ -1262,7 +1277,7 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
               ]}
             />
           </Row>
-          <Row theme={theme} label="Command colors" hint="Colors from the Theme page.">
+          <Row theme={theme} label={t("Command colors")} hint={t("Colors from the Theme page.")}>
             <Segmented
               theme={theme}
               value={prefs.commandColors}
@@ -1273,7 +1288,7 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
               ]}
             />
           </Row>
-          <Row theme={theme} stacked label="Show in timeline" hint="Running and failed calls always show.">
+          <Row theme={theme} stacked label={t("Show in timeline")} hint={t("Running and failed calls always show.")}>
             {HIDEABLE.map((k) => {
               const shown = !prefs.hidden.includes(k);
               return <Chip key={k} theme={theme} on={shown} label={HIDEABLE_LABELS[k]} onPress={() => onChange({ ...prefs, hidden: shown ? [...prefs.hidden, k] : prefs.hidden.filter((h) => h !== k) })} />;
@@ -1286,7 +1301,7 @@ function PrefsEditor({ theme, page, prefs, onChange }: { theme: PluginTheme; pag
   }
   return (
     <View style={{ gap: 20 }}>
-      {prefs.nativeStyle === "paseo" ? <Notice theme={theme}>Restyle Paseo's items is off, so these styles don't apply until you switch it back on.</Notice> : null}
+      {prefs.nativeStyle === "paseo" ? <Notice theme={theme}>{t("Restyle Paseo's items is off, so these styles don't apply until you switch it back on.")}</Notice> : null}
       {RICH_TEXT.map((k) => (
         <View key={k} style={{ gap: 8 }}>
           <Text style={[s.verb, { fontSize: 13 }]}>{RICH_TEXT_OPTIONS[k].title}</Text>
@@ -1815,6 +1830,7 @@ function Columns({ theme, layout, editor, preview }: { theme: PluginTheme; layou
 
 
 function ThemePage({ theme, layout }: Pick<PluginScreenProps, "theme" | "layout">) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const prefs = usePrefs();
@@ -1859,12 +1875,12 @@ function ThemePage({ theme, layout }: Pick<PluginScreenProps, "theme" | "layout"
   if (settings.status === "invalid" || settings.status === "error") {
     body = (
       <View style={{ padding: 28, gap: 12 }}>
-        <Text style={[s.verb, { color: c.statusDanger }]}>Couldn't load the saved theme.</Text>
-        <Button theme={theme} label="Restore default theme" icon="RotateCcw" onPress={() => void settings.reset()} />
+        <Text style={[s.verb, { color: c.statusDanger }]}>{t("Couldn't load the saved theme.")}</Text>
+        <Button theme={theme} label={t("Restore default theme")} icon="RotateCcw" onPress={() => void settings.reset()} />
       </View>
     );
   } else if (!draft || !shown) {
-    body = <Text style={[s.small, { padding: 28 }]}>Loading theme…</Text>;
+    body = <Text style={[s.small, { padding: 28 }]}>{t("Loading theme…")}</Text>;
   } else {
     body = (
       <Columns
@@ -1877,30 +1893,30 @@ function ThemePage({ theme, layout }: Pick<PluginScreenProps, "theme" | "layout"
   }
 
   const subtitle = paseo
-    ? `${paseo.name} is a Paseo theme. Its colors are fixed; customize a copy to change them.`
+    ? `${paseo.name} ${t("is a Paseo theme. Its colors are fixed; customize a copy to change them.")}`
     : active
-      ? "This is your Paseo theme. Apply pushes edits to the app."
+      ? t("This is your Paseo theme. Apply pushes edits to the app.")
       : canSetAppTheme
-        ? "Use as app theme saves your edits and reloads Paseo with this theme."
-        : "Apply, then choose it under Settings → Appearance to use it app-wide.";
+        ? t("Use as app theme saves your edits and reloads Paseo with this theme.")
+        : t("Apply, then choose it under Settings → Appearance to use it app-wide.");
   return (
     <>
-      <TopBar theme={theme} layout={layout} title="Theme" subtitle={subtitle + (settings.saveError ? ` Save failed: ${String(settings.saveError)}` : "")}>
+      <TopBar theme={theme} layout={layout} title={t("Theme")} subtitle={subtitle + (settings.saveError ? ` ${t("Save failed")}: ${String(settings.saveError)}` : "")}>
         {paseo && shown ? (
           <>
-            {dirty ? <Button theme={theme} label="Reset" icon="RotateCcw" onPress={reset} /> : null}
-            {dirty && appId === paseo.id ? <Button theme={theme} label={settings.saving ? "Applying…" : "Apply"} icon="Check" primary disabled={settings.saving} onPress={() => void apply()} /> : null}
+            {dirty ? <Button theme={theme} label={t("Reset")} icon="RotateCcw" onPress={reset} /> : null}
+            {dirty && appId === paseo.id ? <Button theme={theme} label={settings.saving ? t("Applying…") : t("Apply")} icon="Check" primary disabled={settings.saving} onPress={() => void apply()} /> : null}
             {appId === paseo.id ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Icon name="Check" size={14} color={c.foregroundMuted} />
-                <Text style={[s.small, { fontSize: 13 }]}>In use</Text>
+                <Text style={[s.small, { fontSize: 13 }]}>{t("In use")}</Text>
               </View>
             ) : (
               <Button theme={theme} label={`Use ${paseo.name}`} icon="Paintbrush" primary onPress={() => updateAppSettings({ theme: paseo.id, ...(typoDirty ? fonts : null) })} />
             )}
             <Button
               theme={theme}
-              label="Customize a copy"
+              label={t("Customize a copy")}
               icon="Copy"
               primary={appId === paseo.id && !dirty}
               disabled={!draft}
@@ -1912,11 +1928,11 @@ function ThemePage({ theme, layout }: Pick<PluginScreenProps, "theme" | "layout"
           </>
         ) : (
           <>
-            <Button theme={theme} label="Reset" icon="RotateCcw" disabled={!dirty} onPress={reset} />
+            <Button theme={theme} label={t("Reset")} icon="RotateCcw" disabled={!dirty} onPress={reset} />
             {active || !canSetAppTheme ? (
-              <Button theme={theme} label={settings.saving ? "Applying…" : "Apply theme"} icon="Check" primary disabled={!dirty || settings.saving} onPress={() => void apply()} />
+              <Button theme={theme} label={settings.saving ? t("Applying…") : t("Apply theme")} icon="Check" primary disabled={!dirty || settings.saving} onPress={() => void apply()} />
             ) : (
-              <Button theme={theme} label="Use as app theme" icon="Paintbrush" primary disabled={settings.saving || !draft} onPress={() => void apply(true)} />
+              <Button theme={theme} label={t("Use as app theme")} icon="Paintbrush" primary disabled={settings.saving || !draft} onPress={() => void apply(true)} />
             )}
           </>
         )}
@@ -1934,6 +1950,7 @@ const PAGE_SUBTITLES: Record<Exclude<Page, "theme">, string> = {
 
 /** Timeline prefs save as you pick; open chats pick them up for new rows. */
 function PrefsPage({ theme, layout, page, settings, change }: Pick<PluginScreenProps, "theme" | "layout"> & { page: Exclude<Page, "theme">; settings: ReturnType<typeof usePrefsSettings>["settings"]; change(p: Prefs): void }) {
+  const t = useI18n();
   const prefs = usePrefs();
   const draft = useCurrentTheme() ?? themeSchema.parse({});
   const defaults = prefsSettings.schema.parse({});
@@ -1941,18 +1958,18 @@ function PrefsPage({ theme, layout, page, settings, change }: Pick<PluginScreenP
   const c = theme.colors;
   const s = useStyles(theme);
   const failed = !!settings.saveError;
-  const status = failed ? `Save failed: ${String(settings.saveError)}` : settings.saving ? "Saving…" : "Saved automatically";
+  const status = failed ? `${t("Save failed")}: ${String(settings.saveError)}` : settings.saving ? t("Saving") : t("Saved automatically");
   const PagePreview = page === "rich" ? RichPreview : Preview;
   return (
     <>
-      <TopBar theme={theme} layout={layout} title={PAGES.find((p) => p.id === page)!.label} subtitle={PAGE_SUBTITLES[page]}>
+      <TopBar theme={theme} layout={layout} title={t(PAGES.find((p) => p.id === page)!.label)} subtitle={t(PAGE_SUBTITLES[page])}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
           <Icon name={failed ? "TriangleAlert" : "Check"} size={13} color={failed ? c.statusDanger : c.statusSuccess} />
           <Text style={[s.small, { fontSize: 12, color: failed ? c.statusDanger : c.foregroundMuted }]} numberOfLines={1}>
             {status}
           </Text>
         </View>
-        <Button theme={theme} label="Defaults" icon="RotateCcw" disabled={isDefault} onPress={() => change(defaults)} />
+        <Button theme={theme} label={t("Defaults")} icon="RotateCcw" disabled={isDefault} onPress={() => change(defaults)} />
       </TopBar>
       <Columns
         theme={theme}
@@ -1980,6 +1997,7 @@ function usePrefsSettings() {
 }
 
 export function Dashboard({ theme, layout, host }: PluginScreenProps) {
+  const t = useI18n();
   const [page, setPage] = useState<Page>("theme");
   const prefs = usePrefs();
   const { settings, change } = usePrefsSettings();
@@ -1989,7 +2007,13 @@ export function Dashboard({ theme, layout, host }: PluginScreenProps) {
       <View style={{ flex: 1 }}>
         {layout.compact ? (
           <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 12, alignItems: "flex-start" }}>
-            <Segmented<Page> theme={theme} value={page} onChange={setPage} options={PAGES.map((p) => [p.id, p.icon] as [Page, string])} />
+            <Segmented<Page> theme={theme} value={page} onChange={setPage} options={PAGES.map((p) => [p.id, p.icon, t(p.label)] as [Page, string, string])} />
+            <Segmented
+              theme={theme}
+              value={prefs.language}
+              onChange={(language) => change({ ...prefs, language })}
+              options={LANGUAGES.map(({ value, label }) => [value, "", label] as [typeof value, string, string])}
+            />
             {canSetAppTheme && page !== "theme" ? (
               <View style={{ alignSelf: "stretch" }}>
                 <RestyleCard theme={theme} prefs={prefs} onChange={change} />

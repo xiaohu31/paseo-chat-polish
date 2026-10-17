@@ -5,6 +5,9 @@ import { z } from "zod";
 export const HIDEABLE = ["read", "search", "fetch", "task", "todo"] as const;
 export type Hideable = (typeof HIDEABLE)[number];
 
+export const LANGUAGES = ["en", "zh"] as const;
+export type Language = (typeof LANGUAGES)[number];
+
 /** Markdown elements with a choice of style. */
 export const RICH_TEXT = ["quote", "table", "code", "inline", "heading", "list", "callout", "rule"] as const;
 export type RichText = (typeof RICH_TEXT)[number];
@@ -22,6 +25,8 @@ export type IconKind = (typeof ICON_KINDS)[number];
 const tableVariant = z.enum(["a", "b", "c", "d"]).default("a");
 
 export const prefsSchema = z.object({
+  /** Dashboard and built-in timeline labels. Existing settings default to English. */
+  language: z.enum(LANGUAGES).default("en"),
   /** Initial state of reasoning rows; "paseo" follows Settings → Appearance → Always expand reasoning. */
   reasoning: z.enum(["paseo", "collapsed", "expanded"]).default("paseo"),
   /** Which tool rows start with their details open. */

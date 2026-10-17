@@ -11,13 +11,14 @@ A [Paseo](https://paseo.sh) plugin that redraws the agent chat as one quiet colu
 - **Themes.** Pick one of Paseo's built-in themes or a Chat Polish one (Mariana, Paper, Dusk), or edit the colors with contrast checks. Fonts and sizes are set from the same page.
 - **Rich text styles.** Three or four looks each for quotes, tables, code blocks, inline code, headings, lists, callouts and rules.
 - **Working indicator.** Paseo's dots, or a sparkle, spokes, dot ring, orb, matrix or snake loader.
+- **Bilingual UI.** Switch the dashboard and built-in timeline labels between English and Chinese (中文); the choice is saved per Paseo host.
 - **Extras.** Turn recaps, ⌥⌘↑/↓ to jump between your prompts, and Command Center (⌘K) toggles.
 
 ![Merged steps, a diff and a shell run in the chat](images/chat.png)
 
 ## Dashboard
 
-Open **Chat Polish** in the sidebar. Every page has a live preview, and changes save as you pick.
+Open **Chat Polish** in the sidebar. Every page has a live preview, and changes save as you pick. Use the `EN / 中文` selector in the dashboard sidebar (or at the top on compact layouts) to switch languages; the setting is shared by clients connected to the same Paseo host.
 
 | Messages | Rich text |
 | --- | --- |
@@ -39,6 +40,12 @@ Install directly from GitHub instead:
 
 ```sh
 paseo plugin add github:lthieu96/paseo-chat-polish
+```
+
+This bilingual fork is available at `github:xiaohu31/paseo-chat-polish`:
+
+```sh
+paseo plugin add github:xiaohu31/paseo-chat-polish
 ```
 
 To install a specific GitHub release, pass its tag, such as `--ref v0.1.0`.

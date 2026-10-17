@@ -13,6 +13,7 @@ import { changesOfTodo, runOf, runVersion, stepKey, stepSummary, subscribeRun, t
 import { contrast, isHex } from "../shared/theme";
 import { highlight, highlightShell, highlightShellBlock, SYNTAX_THEMES, type Span, type SyntaxColors } from "./highlight";
 import { usePrefs } from "./prefs";
+import { useI18n } from "./use-i18n";
 import { useCurrentTheme } from "./theme-registry";
 import { readHostAppearance, type HostAppearance } from "./web";
 
@@ -523,6 +524,7 @@ export function MergedSteps(
   props: PluginTimelineItemProps<unknown> & { steps: Array<{ item: AgentTimelineItem; phase: "streaming" | "complete" }>; ms?: number; growing: boolean; defaultOpen?: boolean },
 ) {
   const { item, theme, layout, steps, ms, growing, defaultOpen } = props;
+  const t = useI18n();
   const [open, toggle] = useDisclosure(!!defaultOpen);
   const icons = !!useIndent("steps");
   const { density } = usePrefs();
@@ -561,7 +563,7 @@ export function MergedSteps(
         target={label.target}
         mono={label.mono}
         shell={label.shell}
-        meta={failed ? `${failed} failed` : live ? `${steps.length} steps` : ms ? duration(ms) : undefined}
+        meta={failed ? `${failed} ${t("failed")}` : live ? `${steps.length} ${t("steps")}` : ms ? duration(ms) : undefined}
         metaColor={failed ? c.statusDanger : undefined}
         pulsing={!!live}
         swap
@@ -576,6 +578,7 @@ export function MergedSteps(
 }
 
 export function ThoughtItem({ item, theme, layout, nested }: PluginTimelineItemProps<z.output<typeof thoughtSchema>> & Nestable) {
+  const t = useI18n();
   const s = useStyles(theme);
   // "paseo" follows Settings → Appearance → Always expand reasoning, which is off (collapsed) by default.
   const { reasoning, density } = usePrefs();
@@ -591,7 +594,7 @@ export function ThoughtItem({ item, theme, layout, nested }: PluginTimelineItemP
         compact={layout.compact}
         kind="thought"
         icon="Brain"
-        verb={streaming ? "Thinking" : "Thought"}
+        verb={streaming ? t("Thinking") : t("Thought")}
         pulsing={streaming}
         open={open}
         onToggle={text.trim() ? toggle : undefined}
@@ -615,6 +618,7 @@ export function ThoughtItem({ item, theme, layout, nested }: PluginTimelineItemP
 }
 
 export function PlanItem({ item, theme }: PluginTimelineItemProps<z.output<typeof planSchema>>) {
+  const t = useI18n();
   const s = useStyles(theme);
   const [open, toggle] = useDisclosure();
   const text = useRevealedText(item.data.text, item.data.phase).trim();
@@ -624,8 +628,8 @@ export function PlanItem({ item, theme }: PluginTimelineItemProps<z.output<typeo
     <View style={s.card}>
       <View style={s.cardHead}>
         <Icon name="Map" size={15} color={theme.colors.accent} />
-        <Text style={s.title}>Plan</Text>
-        {steps ? <Text style={[s.meta, { marginLeft: 0 }]}>{steps} steps</Text> : null}
+        <Text style={s.title}>{t("Plan")}</Text>
+        {steps ? <Text style={[s.meta, { marginLeft: 0 }]}>{steps} {t("steps")}</Text> : null}
       </View>
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: long ? 6 : 14, maxHeight: long && !open ? 320 : undefined, overflow: "hidden" }}>
         <Text style={[s.prose, { color: theme.colors.foreground, lineHeight: Math.round(s.prose.fontSize * 1.5) }]} selectable>
@@ -634,7 +638,7 @@ export function PlanItem({ item, theme }: PluginTimelineItemProps<z.output<typeo
       </View>
       {long ? (
         <Pressable accessibilityRole="button" onPress={toggle} style={s.more}>
-          <Text style={s.moreText}>{open ? "Show less" : "Show full plan"}</Text>
+          <Text style={s.moreText}>{open ? t("Show less") : t("Show full plan")}</Text>
           <Icon name={open ? "ChevronUp" : "ChevronDown"} size={12} color={theme.colors.foregroundMuted} />
         </Pressable>
       ) : null}
@@ -703,6 +707,7 @@ function TodoList({ theme, items }: { theme: PluginTheme; items: z.output<typeof
 
 /** A todo update on its own row (merging off, or no steps around it): "Tasks 1 / 3", progress and the task in progress; open, the list. */
 export function TodoItem({ item, theme }: PluginTimelineItemProps<z.output<typeof todoSchema>>) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const [open, toggle] = useDisclosure();
@@ -724,7 +729,7 @@ export function TodoItem({ item, theme }: PluginTimelineItemProps<z.output<typeo
         <View style={s.slot}>
           <Icon name="ListChecks" size={15} color={c.foregroundMuted} />
         </View>
-        <Text style={s.verb}>Tasks</Text>
+        <Text style={s.verb}>{t("Tasks")}</Text>
         <Text {...PMONO} style={[s.code, { color: c.foregroundMuted }]}>
           {done} / {items.length}
         </Text>
@@ -810,6 +815,7 @@ function useImage(url: string) {
 const THUMB = { small: { width: 200, height: 128 }, large: { width: 320, height: 200 } };
 
 function Thumbnail({ alt, url, theme, onOpen }: { alt: string; url: string; theme: PluginTheme; onOpen(): void }) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const { uri, failed } = useImage(url);
@@ -819,12 +825,12 @@ function Thumbnail({ alt, url, theme, onOpen }: { alt: string; url: string; them
     return (
       <View style={[frame, { alignItems: "center", justifyContent: "center", gap: 6 }]}>
         <Icon name={failed ? "ImageOff" : "Image"} size={16} color={c.foregroundMuted} />
-        <Text style={s.small}>{failed ? "Image unavailable" : "Loading…"}</Text>
+        <Text style={s.small}>{failed ? t("Image unavailable") : t("Loading…")}</Text>
       </View>
     );
   }
   return (
-    <Pressable accessibilityRole="imagebutton" accessibilityLabel={`Open ${alt}`} onPress={onOpen} style={frame}>
+    <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${t("Open")} ${alt}`} onPress={onOpen} style={frame}>
       <Image source={{ uri }} style={size} resizeMode="cover" />
     </Pressable>
   );
@@ -851,6 +857,7 @@ function LightboxButton({ icon, label, onPress, size = 32 }: { icon: string; lab
  * images, Esc or a click on the backdrop to close.
  */
 function Lightbox({ images, index, onIndex, onClose }: { images: Array<{ alt: string; url: string }>; index: number; onIndex(i: number): void; onClose(): void }) {
+  const t = useI18n();
   const image = images[index]!;
   const { uri, failed } = useImage(image.url);
   const win = useWindowDimensions();
@@ -896,8 +903,8 @@ function Lightbox({ images, index, onIndex, onClose }: { images: Array<{ alt: st
             {many ? <Text style={[chrome, { fontSize: 12, opacity: 0.55, fontVariant: ["tabular-nums"] }]}>{`${index + 1} / ${images.length}`}</Text> : null}
           </View>
           {natural && fit < 1 ? <Text style={[chrome, { fontSize: 12, opacity: 0.55, fontVariant: ["tabular-nums"] }]}>{`${Math.round(scale * 100)}%`}</Text> : null}
-          <LightboxButton icon={zoomed ? "ZoomOut" : "ZoomIn"} label={zoomed ? "Fit to window" : "Zoom in"} onPress={() => setZoomed((z) => !z)} />
-          <LightboxButton icon="X" label="Close" onPress={onClose} />
+          <LightboxButton icon={zoomed ? "ZoomOut" : "ZoomIn"} label={zoomed ? t("Fit to window") : t("Zoom in")} onPress={() => setZoomed((z) => !z)} />
+          <LightboxButton icon="X" label={t("Close")} onPress={onClose} />
         </View>
         <ScrollView style={{ flex: 1 }} horizontal={false} contentContainerStyle={{ flexGrow: 1 }}>
           <ScrollView horizontal contentContainerStyle={{ flexGrow: 1 }}>
@@ -914,7 +921,7 @@ function Lightbox({ images, index, onIndex, onClose }: { images: Array<{ alt: st
             ) : (
               <View pointerEvents="none" style={[shown, { alignItems: "center", justifyContent: "center", gap: 8 }]}>
                 <Icon name={failed ? "ImageOff" : "Image"} size={20} color="rgba(255,255,255,0.5)" />
-                <Text style={[chrome, { opacity: 0.5 }]}>{failed ? "Image unavailable" : "Loading…"}</Text>
+                <Text style={[chrome, { opacity: 0.5 }]}>{failed ? t("Image unavailable") : t("Loading…")}</Text>
               </View>
             )}
             </Pressable>
@@ -923,15 +930,15 @@ function Lightbox({ images, index, onIndex, onClose }: { images: Array<{ alt: st
         {many ? (
           <>
             <View pointerEvents="box-none" style={{ position: "absolute", left: 20, top: 0, bottom: 0, justifyContent: "center" }}>
-              <LightboxButton icon="ChevronLeft" label="Previous image" onPress={() => go(-1)} size={40} />
+              <LightboxButton icon="ChevronLeft" label={t("Previous image")} onPress={() => go(-1)} size={40} />
             </View>
             <View pointerEvents="box-none" style={{ position: "absolute", right: 20, top: 0, bottom: 0, justifyContent: "center" }}>
-              <LightboxButton icon="ChevronRight" label="Next image" onPress={() => go(1)} size={40} />
+              <LightboxButton icon="ChevronRight" label={t("Next image")} onPress={() => go(1)} size={40} />
             </View>
           </>
         ) : null}
         <Text pointerEvents="none" style={[chrome, { position: "absolute", bottom: 14, alignSelf: "center", fontSize: 12, color: "rgba(255,255,255,0.6)", backgroundColor: "rgba(8,9,11,0.7)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, overflow: "hidden" }]}>
-          {Platform.OS === "web" ? `Click to ${zoomed ? "fit" : "zoom"} · ${many ? "← → to browse · " : ""}Esc to close` : "Tap to zoom"}
+          {Platform.OS === "web" ? `${t("Click to")} ${zoomed ? t("fit") : t("zoom")} · ${many ? `${t("← → to browse")} · ` : ""}${t("Esc to close")}` : t("Tap to zoom")}
         </Text>
       </View>
     </Modal>
@@ -970,6 +977,7 @@ export function Diffstat({ added, removed, theme }: { added: number; removed: nu
 
 /** The daemon's recap after a turn, set like the turn footer under it: files with +/− and a diffstat, commands, failures. Opens to the file list. */
 export function RecapItem({ item, theme }: PluginTimelineItemProps<Recap>) {
+  const t = useI18n();
   const s = useStyles(theme);
   const c = theme.colors;
   const { files, commands, failed } = item.data;
@@ -984,18 +992,18 @@ export function RecapItem({ item, theme }: PluginTimelineItemProps<Recap>) {
   if (files.length)
     parts.push(
       <View key="files" style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-        <Text style={[text, { color: c.foreground }]}>{count(files.length, "file")}</Text>
+        <Text style={[text, { color: c.foreground }]}>{`${files.length} ${files.length === 1 ? t("file") : t("files")}`}</Text>
         {added ? <Text {...PMONO} style={[mono, { color: c.statusSuccess }]}>+{added}</Text> : null}
         {removed ? <Text {...PMONO} style={[mono, { color: c.statusDanger }]}>−{removed}</Text> : null}
         <Diffstat added={added} removed={removed} theme={theme} />
       </View>,
     );
-  if (commands) parts.push(<Text key="commands" style={text}>{count(commands, "command")}</Text>);
+  if (commands) parts.push(<Text key="commands" style={text}>{`${commands} ${commands === 1 ? t("command") : t("commands")}`}</Text>);
   if (failed.length)
     parts.push(
       <View key="failed" style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
         {dot}
-        <Text style={[text, { color: c.statusDanger }]}>{failed.length} failed</Text>
+        <Text style={[text, { color: c.statusDanger }]}>{failed.length} {t("failed")}</Text>
       </View>,
     );
   return (

@@ -147,7 +147,7 @@ test("hideable kinds: only completed reads, searches, fetches and background tas
   assert.equal(hideableKind(tool({ type: "read", filePath: "a.ts" }, { status: "failed" })), undefined);
   assert.equal(hideableKind(tool({ type: "read", filePath: "a.ts" }, { status: "running" })), undefined);
   assert.equal(hideableKind(tool({ type: "shell", command: "ls" })), undefined);
-  assert.deepEqual(prefsSchema.parse({}), { reasoning: "paseo", toolDetails: "collapsed", commandColors: "expanded", hidden: [], userMessages: "clamp", steps: "faded", selectionCopy: "on", density: "normal", rowIcons: { steps: "show", tool: "show", thought: "show" }, merge: "on", loader: "dots", loaderSize: "s", nativeStyle: "design", recap: "on", images: "small", richText: { quote: "a", table: "a", code: "a", inline: "a", heading: "a", list: "a", callout: "a", rule: "a" } });
+  assert.deepEqual(prefsSchema.parse({}), { language: "en", reasoning: "paseo", toolDetails: "collapsed", commandColors: "expanded", hidden: [], userMessages: "clamp", steps: "faded", selectionCopy: "on", density: "normal", rowIcons: { steps: "show", tool: "show", thought: "show" }, merge: "on", loader: "dots", loaderSize: "s", nativeStyle: "design", recap: "on", images: "small", richText: { quote: "a", table: "a", code: "a", inline: "a", heading: "a", list: "a", callout: "a", rule: "a" } });
   // A saved single choice from before icons were per kind applies to all three.
   assert.deepEqual(prefsSchema.parse({ rowIcons: "hide" }).rowIcons, { steps: "hide", tool: "hide", thought: "hide" });
   // Saved prefs from before rich text variants still load, with each element on its base style.
@@ -157,6 +157,15 @@ test("hideable kinds: only completed reads, searches, fetches and background tas
   assert.equal(prefsSchema.parse({ richText: { table: "d" } }).richText.table, "d");
   assert.equal(prefsSchema.parse({ steps: "merged" }).steps, "faded");
   assert.equal(prefsSchema.safeParse({ richText: { quote: "d" } }).success, false);
+  assert.equal(prefsSchema.parse({ language: "zh" }).language, "zh");
+  assert.equal(prefsSchema.safeParse({ language: "fr" }).success, false);
+});
+
+test("language translations keep English as the default and translate built-in labels", async () => {
+  const { translate } = await import("../client/i18n.ts");
+  assert.equal(translate("en", "Theme"), "Theme");
+  assert.equal(translate("zh", "Theme"), "主题");
+  assert.equal(translate("zh", "Use language"), "切换语言");
 });
 
 test("turn recap: files with +/− relative to cwd, failed commands with exit codes, nothing for read-only turns", async () => {
